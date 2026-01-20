@@ -1,0 +1,8 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "TLV70433DBVT")(type "KiCad")(uri "${KIPRJMOD}/Lib/TLV70433DBVT.kicad_sym")(options "")(descr ""))
+  (lib (name "LT6003")(type "KiCad")(uri "${KIPRJMOD}/Lib/LT6003.kicad_sym")(options "")(descr ""))
+  (lib (name "NC7WZ07P6X")(type "KiCad")(uri "${KIPRJMOD}/Lib/NC7WZ07P6X.kicad_sym")(options "")(descr ""))
+  (lib (name "SX1261")(type "KiCad")(uri "${KIPRJMOD}/Lib/SX1261.kicad_sym")(options "")(descr ""))
+  (lib (name "PE4269-63")(type "KiCad")(uri "${KIPRJMOD}/Lib/PE4269-63.kicad_sym")(options "")(descr ""))
+)
