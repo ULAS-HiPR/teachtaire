@@ -2643,7 +2643,7 @@
 				)
 			)
 		)
-		(property "Value" "C"
+		(property "Value" "47pF"
 			(at 62.23 36.83 90)
 			(effects
 				(font
@@ -2788,7 +2788,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "R"
+		(property "Value" "560Ω"
 			(at 63.5 123.1899 0)
 			(effects
 				(font
@@ -2858,7 +2858,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "R"
+		(property "Value" "10Ω"
 			(at 46.99 66.0399 0)
 			(effects
 				(font
@@ -3127,7 +3127,7 @@
 				)
 			)
 		)
-		(property "Value" "C"
+		(property "Value" "10nF"
 			(at 59.69 50.8 90)
 			(effects
 				(font
@@ -3461,7 +3461,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "R"
+		(property "Value" "100kΩ"
 			(at 63.5 133.3499 0)
 			(effects
 				(font
@@ -3531,7 +3531,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "L"
+		(property "Value" "27nH"
 			(at 45.72 52.0699 0)
 			(effects
 				(font
@@ -3832,7 +3832,7 @@
 				)
 			)
 		)
-		(property "Value" "R"
+		(property "Value" "100kΩ"
 			(at 50.8 82.55 90)
 			(effects
 				(font
