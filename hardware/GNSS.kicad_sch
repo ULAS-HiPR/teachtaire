@@ -2383,181 +2383,93 @@
 		)
 		(uuid "fb59cfe7-e6d4-4efb-a475-6eea0b566ed5")
 	)
-	(global_label "ANT_DETECT"
-		(shape input)
-		(at 161.29 129.54 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "3af9e9bf-6fb4-4c1e-9d3f-f3105d8e76dd")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 175.4027 129.54 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "RF_IN"
-		(shape input)
-		(at 80.01 41.91 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "3efb844c-c72c-49bc-9417-5b8a96221e74")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 88.2567 41.91 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "ANT_SHORT_N"
+	(hierarchical_label "ANT_SHORT_N"
 		(shape input)
 		(at 156.21 152.4 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left)
 		)
-		(uuid "820373d8-8bce-4384-8f25-d7c6de92ad3b")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 171.9557 152.4 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
+		(uuid "0f3c4e93-da45-41d9-9cb9-b15847add0ae")
 	)
-	(global_label "ANT_OFF_N"
+	(hierarchical_label "RF_IN"
 		(shape input)
-		(at 85.09 90.17 0)
-		(fields_autoplaced yes)
+		(at 80.01 41.91 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left)
 		)
-		(uuid "8ae876c2-bb8f-4b6d-8c09-c30df6310ef6")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 98.2353 90.17 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
+		(uuid "29564fb1-bf65-47d5-8ec7-6cf55decc970")
 	)
-	(global_label "V_ANT"
-		(shape input)
-		(at 161.29 133.35 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "dd4b4ffe-38d9-4c13-8a8c-af990ba38a2e")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 169.7181 133.35 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "V_ANT"
-		(shape input)
-		(at 115.57 121.92 90)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "dd637702-8f7e-4b69-b46f-b1ee2ccde03e")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 115.57 113.4919 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "V_ANT"
-		(shape input)
-		(at 158.75 156.21 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "ee90ea36-6170-4f41-9e05-11852959164f")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 167.1781 156.21 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "antenna supply"
+	(hierarchical_label "Antenna Supply"
 		(shape input)
 		(at 44.45 95.25 270)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right)
 		)
-		(uuid "f751da3c-8458-4ec5-8033-6da275f3af43")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 44.45 112.87 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
+		(uuid "2ac7d414-a901-4954-84fd-fc1099b0881d")
+	)
+	(hierarchical_label "ANT_DETECT"
+		(shape input)
+		(at 161.29 129.54 0)
+		(effects
+			(font
+				(size 1.27 1.27)
 			)
+			(justify left)
 		)
+		(uuid "438c13fa-b660-4293-b654-c8d2e902401d")
+	)
+	(hierarchical_label "ANT_OFF_N"
+		(shape input)
+		(at 85.09 90.17 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "573525ad-8fc7-4ebd-b28d-14ea550ead7b")
+	)
+	(hierarchical_label "V_ANT"
+		(shape input)
+		(at 161.29 133.35 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "66e1a0f8-7bb2-4f17-bd29-074a672dda3f")
+	)
+	(hierarchical_label "V_ANT"
+		(shape input)
+		(at 115.57 121.92 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "bda8c016-da50-49d1-a665-81f0347c2be6")
+	)
+	(hierarchical_label "V_ANT"
+		(shape input)
+		(at 158.75 156.21 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "f22fa196-7422-415e-8970-1e3cbc181abb")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -2651,7 +2563,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 66.04 40.9448 0)
 			(effects
 				(font
@@ -2797,7 +2709,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 59.182 121.92 90)
 			(effects
 				(font
@@ -2867,7 +2779,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 42.672 64.77 90)
 			(effects
 				(font
@@ -2937,7 +2849,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23"
 			(at 67.31 92.71 0)
 			(effects
 				(font
@@ -3037,7 +2949,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23"
 			(at 41.91 81.28 0)
 			(effects
 				(font
@@ -3135,7 +3047,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 63.5 54.9148 0)
 			(effects
 				(font
@@ -3470,7 +3382,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 59.182 132.08 90)
 			(effects
 				(font
@@ -3540,7 +3452,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Inductor_SMD:L_0402_1005Metric"
 			(at 44.45 50.8 0)
 			(effects
 				(font
@@ -3608,7 +3520,7 @@
 				)
 			)
 		)
-		(property "Footprint" "SC-88/SC70-6/SOT-363_419B-02_ONS"
+		(property "Footprint" "SC-88&slash_SC70-6&slash_SOT-363_419B-02_ONS"
 			(at 115.57 152.4 0)
 			(effects
 				(font
@@ -3690,7 +3602,7 @@
 				)
 			)
 		)
-		(property "Footprint" "SC-88/SC70-6/SOT-363_419B-02_ONS"
+		(property "Footprint" "SC-88&slash_SC70-6&slash_SOT-363_419B-02_ONS"
 			(at 115.57 129.54 0)
 			(effects
 				(font
@@ -3772,7 +3684,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 76.2 40.132 90)
 			(effects
 				(font
@@ -3840,7 +3752,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 50.8 88.138 90)
 			(effects
 				(font
@@ -3975,7 +3887,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_Coaxial:U.FL_Molex_MCRF_73412-0110_Vertical"
 			(at 44.45 27.94 0)
 			(effects
 				(font
