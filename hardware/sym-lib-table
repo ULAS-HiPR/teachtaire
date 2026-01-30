@@ -10,4 +10,5 @@
   (lib (name "radio_thing")(type "KiCad")(uri "${KIPRJMOD}/Lib/radio_thing.kicad_sym")(options "")(descr "")(disabled)(hidden))
   (lib (name "SX1261 - Copy")(type "KiCad")(uri "${KIPRJMOD}/Lib/SX1261 - Copy.kicad_sym")(options "")(descr ""))
   (lib (name "Sl1016X-T1-GE3")(type "KiCad")(uri "${KIPRJMOD}/Lib/Sl1016X-T1-GE3.kicad_sym")(options "")(descr ""))
+  (lib (name "RF-LORA-868-SO")(type "KiCad")(uri "${KIPRJMOD}/Lib/RF-LORA-868-SO.kicad_sym")(options "")(descr ""))
 )
