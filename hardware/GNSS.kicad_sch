@@ -3887,7 +3887,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_Coaxial:U.FL_Molex_MCRF_73412-0110_Vertical"
+		(property "Footprint" "Connector_Coaxial:SMA_BAT_Wireless_BWSMA-KWE-Z001"
 			(at 44.45 27.94 0)
 			(effects
 				(font
