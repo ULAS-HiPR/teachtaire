@@ -731,6 +731,10 @@
     [
       "a8c66ae0-f2ee-422a-8d95-b403d0fcd214",
       "GNSS_Bias_T"
+    ],
+    [
+      "121edbfe-07a7-42b1-9422-463dd145b0de",
+      "power"
     ]
   ],
   "text_variables": {}
