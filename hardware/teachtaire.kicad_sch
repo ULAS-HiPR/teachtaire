@@ -6493,19 +6493,20 @@
 			(embedded_fonts no)
 		)
 	)
-	(text "50\nCoplanar Single Ended\nL\n1\n/\nL\n2\n0.1565mm\n/\n0.5080mm"
+	(text "50Ω\nCoplanar Single Ended\nL1/L2\n0.1565mm - trace width\n0.5080mm - distance between top layer gnd pours and traces"
 		(exclude_from_sim no)
-		(at 72.136 156.718 0)
+		(at 91.948 155.448 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
+			(justify left)
 		)
 		(uuid "058f0c7b-5e10-4fbc-be24-04fd19322256")
 	)
 	(text "JLC06061H-3313(Standard/Finished thickness0.57±0.10mm)"
 		(exclude_from_sim no)
-		(at 119.634 152.146 0)
+		(at 121.666 146.558 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6615,7 +6616,7 @@
 	)
 	(text_box "MCU"
 		(exclude_from_sim no)
-		(at 105.41 17.78 0)
+		(at 105.41 16.51 0)
 		(size 121.92 123.19)
 		(margins 0.9525 0.9525 0.9525 0.9525)
 		(stroke
@@ -6972,10 +6973,6 @@
 		(uuid "ff1a153e-6743-4b2c-8ade-4ac67058fa57")
 	)
 	(no_connect
-		(at 166.37 123.19)
-		(uuid "007c83bd-f6f4-4270-97c7-f0c9e5f1b8bf")
-	)
-	(no_connect
 		(at 201.93 67.31)
 		(uuid "0e658411-5bb5-4115-9c7e-7286bf986ce7")
 	)
@@ -6990,10 +6987,6 @@
 	(no_connect
 		(at 166.37 97.79)
 		(uuid "46c445df-1fd1-4802-bdf7-9e4665598590")
-	)
-	(no_connect
-		(at 166.37 118.11)
-		(uuid "51ea24a9-6c68-4040-9c97-b945aa9ac79c")
 	)
 	(no_connect
 		(at 166.37 77.47)
@@ -7028,20 +7021,8 @@
 		(uuid "8c145d54-7301-42bc-b9ec-9a999e4943d2")
 	)
 	(no_connect
-		(at 166.37 115.57)
-		(uuid "9a3e26d0-f719-4c0f-a1d1-147e714bcad9")
-	)
-	(no_connect
 		(at 201.93 57.15)
 		(uuid "a3ecd3fd-a580-4c7b-8586-8d7aff01fe56")
-	)
-	(no_connect
-		(at 166.37 113.03)
-		(uuid "a9d8cc42-c0f6-4c41-9b1e-1a3a70580f61")
-	)
-	(no_connect
-		(at 166.37 120.65)
-		(uuid "b07f3939-d15e-4267-aa78-8d63f73f9064")
 	)
 	(no_connect
 		(at 54.61 93.98)
@@ -8095,7 +8076,7 @@
 	)
 	(wire
 		(pts
-			(xy 292.1 156.21) (xy 299.72 156.21)
+			(xy 292.1 156.21) (xy 304.8 156.21)
 		)
 		(stroke
 			(width 0)
@@ -8353,6 +8334,50 @@
 		)
 		(uuid "f5254730-e993-440d-b0aa-e4e2737b87c7")
 	)
+	(global_label "LoRa_DIO1"
+		(shape input)
+		(at 166.37 113.03 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "05e5fc4f-795f-4e85-befe-0728a1573623")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 153.4063 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "LoRa_DIO5"
+		(shape input)
+		(at 166.37 123.19 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "13cc4db9-28f9-4a35-8e9e-afe10b820403")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 153.4063 123.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "LoRa_RX_SWITCH"
 		(shape input)
 		(at 204.47 77.47 0)
@@ -8366,6 +8391,28 @@
 		(uuid "165ad85f-65f3-406e-9983-bc7423965f79")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 223.2998 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "LoRa_DIO3"
+		(shape input)
+		(at 292.1 161.29 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "166b5ec3-42e0-4664-948f-f09bf8a85e63")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 305.0637 161.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8507,28 +8554,6 @@
 			)
 		)
 	)
-	(global_label "LoRa_DIO2"
-		(shape input)
-		(at 166.37 110.49 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "355c7d03-5c69-478c-88bb-9b3620eafcf4")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 153.4063 110.49 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "VBAT"
 		(shape input)
 		(at 53.34 124.46 180)
@@ -8595,6 +8620,28 @@
 			)
 		)
 	)
+	(global_label "LoRa_DIO0"
+		(shape input)
+		(at 166.37 110.49 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "3a64cb17-5e9b-4b27-adbf-fdf607e3f187")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 153.4063 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "SWDIO"
 		(shape input)
 		(at 212.09 90.17 0)
@@ -8652,6 +8699,28 @@
 		(uuid "43af4dcb-c7d0-4e89-9106-c4fe226df757")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 242.246 135.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "LoRa_DIO2"
+		(shape input)
+		(at 166.37 115.57 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "4582b43d-09db-4332-b1ff-d5b310a3c1d7")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 153.4063 115.57 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8745,6 +8814,28 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "LoRa_DIO1"
+		(shape input)
+		(at 256.54 163.83 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "529314be-e438-46a2-a2c4-5901d7b91179")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 243.5763 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -8881,6 +8972,28 @@
 			)
 		)
 	)
+	(global_label "LoRa_DIO3"
+		(shape input)
+		(at 166.37 118.11 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "6ad86560-6ab2-4318-8eda-9aa408d43aa2")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 153.4063 118.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "CANo_+"
 		(shape input)
 		(at 327.66 41.91 0)
@@ -8947,6 +9060,50 @@
 			)
 		)
 	)
+	(global_label "LoRa_DIO4"
+		(shape input)
+		(at 166.37 120.65 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "78a01c9f-a590-418c-a3be-85d0684acb3b")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 153.4063 120.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "LoRa_DIO5"
+		(shape input)
+		(at 292.1 166.37 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "7da310b9-5424-47ae-9a4f-b5137bc82915")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 305.0637 166.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "CAN_+"
 		(shape input)
 		(at 201.93 87.63 0)
@@ -9004,6 +9161,28 @@
 		(uuid "b6ca02a6-2a72-420f-8226-67b16382ab1d")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 217.6151 74.93 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "LoRa_DIO4"
+		(shape input)
+		(at 292.1 163.83 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "b7584e90-d5c8-4b3c-accc-42f1dd9b7bb8")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 305.0637 163.83 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9251,6 +9430,28 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "LoRa_DIO0"
+		(shape input)
+		(at 256.54 161.29 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "f67a88d0-9984-452a-a00c-24406a0ac9c0")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 243.5763 161.29 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -10305,7 +10506,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 304.8 161.29 0)
+		(at 309.88 161.29 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -10314,7 +10515,7 @@
 		(fields_autoplaced yes)
 		(uuid "2cd72591-97d0-4a0d-9964-3928f5fa2505")
 		(property "Reference" "#PWR037"
-			(at 304.8 167.64 0)
+			(at 309.88 167.64 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10323,7 +10524,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 304.8 166.37 0)
+			(at 309.88 166.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10331,7 +10532,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 304.8 161.29 0)
+			(at 309.88 161.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10340,7 +10541,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 304.8 161.29 0)
+			(at 309.88 161.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10349,7 +10550,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 304.8 161.29 0)
+			(at 309.88 161.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14931,16 +15132,15 @@
 	)
 	(symbol
 		(lib_id "Connector:Conn_Coaxial")
-		(at 304.8 156.21 0)
+		(at 309.88 156.21 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "e9719890-d52e-4bbb-becd-c4033fefb401")
 		(property "Reference" "J3"
-			(at 308.61 157.7733 0)
+			(at 312.166 157.734 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14949,7 +15149,7 @@
 			)
 		)
 		(property "Value" "Conn_Coaxial"
-			(at 308.61 155.2333 0)
+			(at 311.912 155.194 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14958,7 +15158,7 @@
 			)
 		)
 		(property "Footprint" "Connector_Coaxial:SMA_BAT_Wireless_BWSMA-KWE-Z001"
-			(at 304.8 156.21 0)
+			(at 309.88 156.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14967,7 +15167,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 304.8 156.21 0)
+			(at 309.88 156.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14976,7 +15176,7 @@
 			)
 		)
 		(property "Description" "coaxial connector (BNC, SMA, SMB, SMC, Cinch/RCA, LEMO, ...)"
-			(at 304.8 156.21 0)
+			(at 309.88 156.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
