@@ -11499,7 +11499,7 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "+3.3V"
+		(property "Value" "+3V3D"
 			(at 96.266 68.326 0)
 			(effects
 				(font
@@ -11966,7 +11966,7 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "+3.3V"
+		(property "Value" "+3V3D"
 			(at 295.91 97.7899 90)
 			(effects
 				(font
@@ -13345,12 +13345,12 @@
 	(symbol
 		(lib_id "Diode:BAT54C")
 		(at 177.8 157.48 0)
+		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "a9184d30-f4b2-4527-8590-48bc3cc1290f")
 		(property "Reference" "D2"
 			(at 177.8 151.13 0)
@@ -13369,7 +13369,7 @@
 			)
 		)
 		(property "Footprint" "Package_TO_SOT_SMD:SOT-23"
-			(at 179.705 154.305 0)
+			(at 175.895 154.305 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13379,7 +13379,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.diodes.com/_files/datasheets/ds11005.pdf"
-			(at 175.768 157.48 0)
+			(at 179.832 157.48 0)
 			(effects
 				(font
 					(size 1.27 1.27)
