@@ -6493,6 +6493,26 @@
 			(embedded_fonts no)
 		)
 	)
+	(text "50\nCoplanar Single Ended\nL\n1\n/\nL\n2\n0.1565mm\n/\n0.5080mm"
+		(exclude_from_sim no)
+		(at 72.136 156.718 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "058f0c7b-5e10-4fbc-be24-04fd19322256")
+	)
+	(text "JLC06061H-3313(Standard/Finished thickness0.57±0.10mm)"
+		(exclude_from_sim no)
+		(at 119.634 152.146 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "91e28900-f86c-4278-88a7-67f87ca8d9ca")
+	)
 	(text_box "Board Connections"
 		(exclude_from_sim no)
 		(at 228.6 74.93 0)
