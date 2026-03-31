@@ -1,20 +1,152 @@
-
-(footprint HARWIN_S2761-46R (layer F.Cu) (tedit 69846A58)
-  (descr "")
-  (attr smd)
-  (fp_text reference REF** (at 1.775 -1.685 0) (layer F.SilkS)
-    (effects (font (size 1.0 1.0) (thickness 0.15)))
-  )
-  (fp_text value HARWIN_S2761-46R (at 8.76 1.685 0) (layer F.Fab)
-    (effects (font (size 1.0 1.0) (thickness 0.15)))
-  )
-  (pad 1 smd rect (at 0.0 0.0) (size 1.8 1.0) (layers F.Cu F.Mask F.Paste) (solder_mask_margin 0.102))
-  (fp_line (start -0.8 0.4) (end -0.8 -0.4) (layer F.Fab) (width 0.127))
-  (fp_line (start -0.8 -0.4) (end 0.8 -0.4) (layer F.Fab) (width 0.127))
-  (fp_line (start 0.8 -0.4) (end 0.8 0.4) (layer F.Fab) (width 0.127))
-  (fp_line (start 0.8 0.4) (end -0.8 0.4) (layer F.Fab) (width 0.127))
-  (fp_line (start -1.15 -0.75) (end -1.15 0.75) (layer F.CrtYd) (width 0.05))
-  (fp_line (start -1.15 0.75) (end 1.15 0.75) (layer F.CrtYd) (width 0.05))
-  (fp_line (start 1.15 0.75) (end 1.15 -0.75) (layer F.CrtYd) (width 0.05))
-  (fp_line (start 1.15 -0.75) (end -1.15 -0.75) (layer F.CrtYd) (width 0.05))
+(footprint "HARWIN_S2761-46R"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(property "Reference" "REF**"
+		(at 1.775 -1.685 0)
+		(layer "F.SilkS")
+		(uuid "8459decf-ab35-4ed0-ae29-12ea813362e9")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "HARWIN_S2761-46R"
+		(at 8.76 1.685 0)
+		(layer "F.Fab")
+		(uuid "f4228501-b56a-45bb-acbf-5269c56225b5")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "8d1ce35d-161b-4474-94fe-1d42487d6092")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "0cbd6082-e919-4547-87e5-abbe4de72914")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr smd)
+	(fp_line
+		(start -1.15 -0.75)
+		(end -1.15 0.75)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "5e9e2847-b604-449e-abdc-d172b2fbacca")
+	)
+	(fp_line
+		(start -1.15 0.75)
+		(end 1.15 0.75)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "19408961-6a54-437d-a925-2883af559fa8")
+	)
+	(fp_line
+		(start 1.15 -0.75)
+		(end -1.15 -0.75)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "0405ea94-3c4e-47a4-8daa-3d23fb3a9ae4")
+	)
+	(fp_line
+		(start 1.15 0.75)
+		(end 1.15 -0.75)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "562f000b-6f34-4c6b-9dfe-a522f9a0cb54")
+	)
+	(fp_line
+		(start -0.8 -0.4)
+		(end 0.8 -0.4)
+		(stroke
+			(width 0.127)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "00af983b-e862-4e24-b422-df2f3dde1b2f")
+	)
+	(fp_line
+		(start -0.8 0.4)
+		(end -0.8 -0.4)
+		(stroke
+			(width 0.127)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "7842942b-3fe2-4b54-adbc-88097406d37f")
+	)
+	(fp_line
+		(start 0.8 -0.4)
+		(end 0.8 0.4)
+		(stroke
+			(width 0.127)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "db4c0452-890a-480a-8451-376651a6293b")
+	)
+	(fp_line
+		(start 0.8 0.4)
+		(end -0.8 0.4)
+		(stroke
+			(width 0.127)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "bdfae95e-7050-4f60-9326-11d81c796e0e")
+	)
+	(pad "1" smd rect
+		(at 0 0)
+		(size 1.8 1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(solder_mask_margin 0.102)
+		(uuid "c309c5e0-90f1-4e1a-9d0a-c832b2c287c5")
+	)
+	(embedded_fonts no)
+	(model "${KIPRJMOD}/Lib/footprints.pretty/S2761-46R.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 -0 -0)
+		)
+	)
 )
