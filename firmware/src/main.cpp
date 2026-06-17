@@ -28,8 +28,19 @@ struct teachtaire_report_t {
     uint32_t gnss_seen;
     uint32_t gnss_parsed;
     uint32_t gnss_checksum_bad;
+    uint32_t gnss_bytes;
+    uint32_t gnss_starts;
+    uint32_t gnss_overflows;
+    uint32_t gnss_txt;
+    uint32_t gnss_nav_sat;
     uint8_t gnss_fix;
     uint8_t gnss_sats;
+    uint8_t gnss_sats_in_view;
+    uint8_t gnss_ant_status;
+    uint8_t gnss_nav_sat_count;
+    uint8_t gnss_nav_sat_signal;
+    uint8_t gnss_nav_sat_max_cno;
+    uint8_t reserved0;
     int32_t gnss_latitude_e7;
     int32_t gnss_longitude_e7;
     int32_t gnss_altitude_mm;
@@ -39,6 +50,7 @@ struct teachtaire_report_t {
     uint32_t spi_error;
     uint32_t uart_status;
     uint32_t uart_error;
+    uint32_t usart1_isr;
     uint32_t gpioa_idr;
     uint32_t gpioa_odr;
     uint32_t gpiob_idr;
@@ -95,8 +107,9 @@ void gpio_af(GPIO_TypeDef* port, uint16_t pin, uint32_t af, uint32_t pull)
 void SystemClock_Config()
 {
     RCC_OscInitTypeDef osc{};
-    osc.OscillatorType = RCC_OSCILLATORTYPE_HSI48;
-    osc.HSI48State = RCC_HSI48_ON;
+    osc.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+    osc.HSIState = RCC_HSI_ON;
+    osc.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
     if (HAL_RCC_OscConfig(&osc) != HAL_OK) {
         report.fault = 1U;
         return;
@@ -104,10 +117,10 @@ void SystemClock_Config()
 
     RCC_ClkInitTypeDef clk{};
     clk.ClockType = RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1;
-    clk.SYSCLKSource = RCC_SYSCLKSOURCE_HSI48;
+    clk.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
     clk.AHBCLKDivider = RCC_SYSCLK_DIV1;
     clk.APB1CLKDivider = RCC_HCLK_DIV1;
-    if (HAL_RCC_ClockConfig(&clk, FLASH_LATENCY_1) != HAL_OK) {
+    if (HAL_RCC_ClockConfig(&clk, FLASH_LATENCY_0) != HAL_OK) {
         report.fault = 2U;
         return;
     }
@@ -212,8 +225,18 @@ void update_gnss_report(const MAXM10S& gnss, const gps_data& gps)
     report.gnss_seen = gnss.messages_seen();
     report.gnss_parsed = gnss.sentences_parsed();
     report.gnss_checksum_bad = gnss.checksum_failures();
+    report.gnss_bytes = gnss.bytes_seen();
+    report.gnss_starts = gnss.sentences_started();
+    report.gnss_overflows = gnss.line_overflows();
+    report.gnss_txt = gnss.text_messages_seen();
+    report.gnss_nav_sat = gnss.navigation_satellite_messages_seen();
     report.gnss_fix = gnss.fix_valid() ? 1U : 0U;
     report.gnss_sats = gps.satellites;
+    report.gnss_sats_in_view = gnss.satellites_in_view();
+    report.gnss_ant_status = gnss.antenna_status();
+    report.gnss_nav_sat_count = gnss.navigation_satellites_reported();
+    report.gnss_nav_sat_signal = gnss.navigation_satellites_with_signal();
+    report.gnss_nav_sat_max_cno = gnss.navigation_satellite_max_cno();
     report.gnss_latitude_e7 = scale_double(gps.latitude, 10000000.0);
     report.gnss_longitude_e7 = scale_double(gps.longitude, 10000000.0);
     report.gnss_altitude_mm = static_cast<int32_t>(gps.altitude * 1000.0f);
@@ -266,24 +289,27 @@ int main()
     report.lora_rx_ok = (report.lora_init_ok != 0U && lora.start_receive()) ? 1U : 0U;
 
     gps_data gps{};
+    uint32_t last_report_ms = 0U;
+    uint32_t last_nav_sat_poll_ms = 0U;
     while (true) {
         report.loops++;
 
-        if (gnss.update(&gps)) {
-            update_gnss_report(gnss, gps);
-        } else if ((report.loops & 0x1FU) == 0U) {
-            update_gnss_report(gnss, gps);
+        bool gnss_updated = gnss.update(&gps);
+        uint32_t now = HAL_GetTick();
+        if ((now - last_nav_sat_poll_ms) >= 1000U) {
+            last_nav_sat_poll_ms = now;
+            (void)gnss.poll_navigation_satellites();
         }
-
-        if ((report.loops & 0x1FU) == 0U) {
+        if (gnss_updated || ((now - last_report_ms) >= 250U)) {
+            last_report_ms = now;
+            update_gnss_report(gnss, gps);
             update_lora_report(lora);
             report.spi_status = spi.last_status();
             report.spi_error = spi.last_error();
             report.uart_status = uart.last_status();
             report.uart_error = uart.last_error();
+            report.usart1_isr = USART1->ISR;
             update_gpio_report();
         }
-
-        HAL_Delay(10U);
     }
 }
