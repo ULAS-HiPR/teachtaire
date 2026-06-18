@@ -1,0 +1,28 @@
+{
+  "build": {
+    "core": "stm32",
+    "cpu": "cortex-m0",
+    "extra_flags": "-DSTM32F072xB",
+    "f_cpu": "48000000L",
+    "mcu": "stm32f072c8t6",
+    "product_line": "STM32F072xB"
+  },
+  "debug": {
+    "openocd_target": "stm32f0x"
+  },
+  "frameworks": [
+    "stm32cube"
+  ],
+  "name": "Teachtaire STM32F072C8T6",
+  "upload": {
+    "maximum_ram_size": 16384,
+    "maximum_size": 65536,
+    "protocol": "stlink",
+    "protocols": [
+      "stlink"
+    ],
+    "require_upload_port": false
+  },
+  "url": "https://github.com/ULAS-HiPR/teachtaire",
+  "vendor": "HiPR"
+}
