@@ -57,6 +57,10 @@ int main(void)
   SystemClock_Config();
   osKernelInitialize();
 
+  MX_GPIO_Init();
+  MX_SPI1_Init();
+  MX_USART1_UART_Init();
+
   
   SPI_Handler* spi_handler_radio = new SPI_STM(&hspi1, RADIO_CS_PORT, RADIO_CS_PIN);
   UART_Handler* uart_handler_gnss = new UART_STM(&huart1);
@@ -93,6 +97,9 @@ int main(void)
 
   Radio* radio = new SX1272(*spi_handler_radio, RADIO_CS_PIN, radio_pins);
   GNSS* gnss = new MAXM10S(*uart_handler_gnss);
+  bool init_status_radio = radio->init();
+  bool init_status_gnss = gnss->init();
+
 
   #if F4
     CAN_Handler* canbus = new CAN_MOCK();
