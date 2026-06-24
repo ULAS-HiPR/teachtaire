@@ -1,3 +1,4 @@
+#ifdef F4
 /* --------------------------------------------------------------------------
  * Copyright (c) 2013-2020 Arm Limited. All rights reserved.
  *
@@ -2479,4 +2480,5 @@ __WEAK void vApplicationGetTimerTaskMemory (StaticTask_t **ppxTimerTaskTCBBuffer
   *ppxTimerTaskStackBuffer = &Timer_Stack[0];
   *pulTimerTaskStackSize   = (uint32_t)configTIMER_TASK_STACK_DEPTH;
 }
+#endif
 #endif

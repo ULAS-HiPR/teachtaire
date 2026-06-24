@@ -2,20 +2,54 @@
 #include "stm32f4xx_hal.h"
 #include "platform/stm_f4.h"
 #endif
+#if F0
+#include "stm32f0xx_hal.h"
+#include "platform/stm_f0.h"
+#endif
 #include "cmsis_os.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "platform/error_handler.h"
+#include "platform/hal_time.h"
 
+//generics
 #include <data.h>
 #include <sensor.h>
 
-#include <I2C/I2C_STM.h>
-#include <SPI/SPI_STM.h>
+#include <SPI/SPI_Handler.h>
+#include <UART/UART_Handler.h>
+#include <CAN/CAN_Handler.h>
 
-#include "tasks/default.h"
+#include <Radio/Radio.h>
+#include <GNSS/GNSS.h>
+
+//specifics
+#include <SPI/SPI_STM.h>
+#include <UART/UART_STM.h>
+#if F4
+#include <CAN/CAN_Mock.h>
+#elif F0
+#include <CAN/CAN_STM.h>
+#endif
+
+#include <Radio/SX1272.h>
+#include <GNSS/MAXM10S.h>
+
+//tasks
+#include "tasks/CAN_task.h"
+#include "tasks/telem_task.h"
 
 
 void SystemClock_Config(void);
-void Error_Handler(void);
 
+
+const osMessageQueueAttr_t canRQueue_attributes = {
+  .name = "canReciverQueue"
+};
+
+const osMessageQueueAttr_t canSQueue_attributes = {
+  .name = "canSenderQueue"
+};
 
 int main(void)
 {
@@ -24,8 +58,58 @@ int main(void)
   osKernelInitialize();
 
   
-  static task::Default default_task; 
-  default_task.run();
+  SPI_Handler* spi_handler_radio = new SPI_STM(&hspi1, RADIO_CS_PORT, RADIO_CS_PIN);
+  UART_Handler* uart_handler_gnss = new UART_STM(&huart1);
+
+  //only for testing
+  sx1272_pins_t radio_pins = {
+      .reset_write = [](bool high, void* context) {
+          GPIO_TypeDef* port = static_cast<GPIO_TypeDef*>(context);
+          HAL_GPIO_WritePin(port, RADIO_RESET_PIN, high ? GPIO_PIN_SET : GPIO_PIN_RESET);
+      },
+      .reset_context = RADIO_RESET_PORT,
+      .delay_ms = [](std::uint32_t ms, void* context) {
+          HAL_Delay(ms);
+      },
+      .delay_context = nullptr,
+      .switch_write = [](sx1272_switch_mode_t mode, void* context) {
+          switch (mode) {
+              case sx1272_switch_mode_t::OFF:
+                  HAL_GPIO_WritePin(RADIO_RX_SW_PORT, RADIO_RX_SW_PIN, GPIO_PIN_RESET);
+                  HAL_GPIO_WritePin(RADIO_TX_SW_PORT, RADIO_TX_SW_PIN, GPIO_PIN_RESET);
+                  break;
+              case sx1272_switch_mode_t::RX:
+                  HAL_GPIO_WritePin(RADIO_RX_SW_PORT, RADIO_RX_SW_PIN, GPIO_PIN_SET);
+                  HAL_GPIO_WritePin(RADIO_TX_SW_PORT, RADIO_TX_SW_PIN, GPIO_PIN_RESET);
+                  break;
+              case sx1272_switch_mode_t::TX:
+                  HAL_GPIO_WritePin(RADIO_RX_SW_PORT, RADIO_RX_SW_PIN, GPIO_PIN_RESET);
+                  HAL_GPIO_WritePin(RADIO_TX_SW_PORT, RADIO_TX_SW_PIN, GPIO_PIN_SET);
+                  break;
+          }
+      },
+      .switch_context = nullptr
+  };
+
+  Radio* radio = new SX1272(*spi_handler_radio, RADIO_CS_PIN, radio_pins);
+  GNSS* gnss = new MAXM10S(*uart_handler_gnss);
+
+  #if F4
+    CAN_Handler* canbus = new CAN_MOCK();
+  #elif F0
+    MX_CAN_Init();
+    CAN_Handler* canbus = new CAN_STM(&hcan);
+    bool can_init_status = canbus->init();
+  #endif
+
+  osMessageQueueId_t canReciverQueueHandle = osMessageQueueNew(4, sizeof(flight_data), &canRQueue_attributes);
+  osMessageQueueId_t canSenderQueueHandle = osMessageQueueNew(4, sizeof(gps_data), &canSQueue_attributes);
+
+  static task::Telem_Task telem_task(*radio, *gnss, canReciverQueueHandle, canSenderQueueHandle);
+  static task::CAN_task can_task(*canbus, canSenderQueueHandle, canReciverQueueHandle);
+
+  telem_task.run();
+  can_task.run();
 
   
   osKernelStart();
@@ -47,48 +131,70 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Configure the main internal regulator output voltage
-  */
-  __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 16;
-  RCC_OscInitStruct.PLL.PLLN = 336;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
-  RCC_OscInitStruct.PLL.PLLQ = 4;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PREDIV = RCC_PREDIV_DIV1;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL6;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+      Error_Handler();
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
   {
-    Error_Handler();
+      Error_Handler();
   }
 }
 
-void Error_Handler(void)
+#ifdef F0
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM6 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  __disable_irq();
-  while (1)
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM6)
   {
-    // stay here
-  }
+        HAL_IncTick();
+    }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
 }
+#endif // F0
+
+#ifdef USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t *file, uint32_t line)
+{
+  /* USER CODE BEGIN 6 */
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* USER CODE END 6 */
+}
+#endif /* USE_FULL_ASSERT */

@@ -1,3 +1,4 @@
+#ifdef F4
 /* --------------------------------------------------------------------------
  * Portions Copyright © 2017 STMicroelectronics International N.V. All rights reserved.
  * Portions Copyright (c) 2013-2017 ARM Limited. All rights reserved.
@@ -732,3 +733,4 @@ osStatus_t osMessageQueueDelete (osMessageQueueId_t mq_id);
 #endif
 
 #endif  // CMSIS_OS2_H_
+#endif

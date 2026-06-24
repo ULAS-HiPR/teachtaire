@@ -18,8 +18,22 @@
 #define SPI_GPIO_PORT GPIOA 
 #define SPI_GPIO_CLK_ENABLE() __HAL_RCC_GPIOA_CLK_ENABLE() 
 
+//made up pins, need to verify w/ hardware
+
 #define BARO_CS_PIN GPIO_PIN_4
-#define BARO_CS_PORT GPIOA
+#define BARO_CS_PORT GPIOB
+
+#define IMU_CS_PIN GPIO_PIN_11
+#define IMU_CS_PORT GPIOB
+
+#define ENV_CS_PIN GPIO_PIN_14
+#define ENV_CS_PORT GPIOB
+
+#define FLASH_CS_PIN GPIO_PIN_12
+#define FLASH_CS_PORT GPIOB
+
+#define ACCEL_CS_PIN GPIO_PIN_15
+#define ACCEL_CS_PORT GPIOB
 
 // Extern handles for use by I2C/SPI handlers
 extern I2C_HandleTypeDef hi2c1;
