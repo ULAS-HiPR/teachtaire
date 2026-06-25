@@ -24,6 +24,11 @@ struct teachtaire_report_t {
     uint8_t lora_irq;
     int16_t lora_rssi_dbm;
     int8_t lora_snr_db;
+    uint32_t lora_tx_count;
+    uint32_t lora_tx_done_count;
+    uint32_t lora_rx_count;
+    uint32_t lora_rx_bad_count;
+    uint32_t lora_last_counter;
 
     uint32_t gnss_seen;
     uint32_t gnss_parsed;
@@ -252,6 +257,32 @@ void update_lora_report(SX1272& lora)
     report.lora_snr_db = lora.packet_snr_db();
 }
 
+void update_bus_report(SPI_STM& spi, UART_STM& uart)
+{
+    report.spi_status = spi.last_status();
+    report.spi_error = spi.last_error();
+    report.uart_status = uart.last_status();
+    report.uart_error = uart.last_error();
+    report.usart1_isr = USART1->ISR;
+    update_gpio_report();
+}
+
+void write_u32_le(uint8_t* out, uint32_t value)
+{
+    out[0] = static_cast<uint8_t>(value & 0xFFU);
+    out[1] = static_cast<uint8_t>((value >> 8U) & 0xFFU);
+    out[2] = static_cast<uint8_t>((value >> 16U) & 0xFFU);
+    out[3] = static_cast<uint8_t>((value >> 24U) & 0xFFU);
+}
+
+uint32_t read_u32_le(const uint8_t* in)
+{
+    return static_cast<uint32_t>(in[0]) |
+           (static_cast<uint32_t>(in[1]) << 8U) |
+           (static_cast<uint32_t>(in[2]) << 16U) |
+           (static_cast<uint32_t>(in[3]) << 24U);
+}
+
 } // namespace
 
 extern "C" void SysTick_Handler(void)
@@ -286,6 +317,52 @@ int main()
 
     sx1272_config_t lora_config{};
     report.lora_init_ok = lora.init(lora_config) ? 1U : 0U;
+
+#if defined(TEACHTAIRE_LORA_TX_TEST)
+    report.lora_rx_ok = 0U;
+    uint32_t last_tx_ms = 0U;
+    uint32_t tx_counter = 0U;
+    while (true) {
+        report.loops++;
+        uint32_t now = HAL_GetTick();
+        if ((report.lora_init_ok != 0U) && ((now - last_tx_ms) >= 500U)) {
+            last_tx_ms = now;
+            uint8_t packet[12] = {'T', 'C', 'H', 'T', 'L', 'O', 'R', 'A', 0U, 0U, 0U, 0U};
+            write_u32_le(&packet[8], tx_counter);
+            if (lora.send(packet, sizeof(packet))) {
+                report.lora_tx_count++;
+                report.lora_last_counter = tx_counter;
+                tx_counter++;
+            }
+        }
+        if (lora.tx_done()) {
+            report.lora_tx_done_count++;
+        }
+        update_lora_report(lora);
+        update_bus_report(spi, uart);
+        HAL_Delay(10U);
+    }
+#elif defined(TEACHTAIRE_LORA_RX_TEST)
+    report.lora_rx_ok = (report.lora_init_ok != 0U && lora.start_receive()) ? 1U : 0U;
+    while (true) {
+        report.loops++;
+        uint8_t packet[32]{};
+        size_t packet_len = 0U;
+        if (lora.receive(packet, sizeof(packet), &packet_len)) {
+            if ((packet_len == 12U) &&
+                (packet[0] == 'T') && (packet[1] == 'C') && (packet[2] == 'H') && (packet[3] == 'T') &&
+                (packet[4] == 'L') && (packet[5] == 'O') && (packet[6] == 'R') && (packet[7] == 'A')) {
+                report.lora_rx_count++;
+                report.lora_last_counter = read_u32_le(&packet[8]);
+            } else {
+                report.lora_rx_bad_count++;
+            }
+        }
+        update_lora_report(lora);
+        update_bus_report(spi, uart);
+        HAL_Delay(10U);
+    }
+#else
     report.lora_rx_ok = (report.lora_init_ok != 0U && lora.start_receive()) ? 1U : 0U;
 
     gps_data gps{};
@@ -312,4 +389,5 @@ int main()
             update_gpio_report();
         }
     }
+#endif
 }
