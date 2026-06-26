@@ -39,6 +39,8 @@
 #include "tasks/CAN_task.h"
 #include "tasks/telem_task.h"
 
+#define SYNC_WORD 0x4F // O for Ogma, P for Payload
+
 
 void SystemClock_Config(void);
 
@@ -95,7 +97,7 @@ int main(void)
       .switch_context = nullptr
   };
 
-  Radio* radio = new SX1272(*spi_handler_radio, RADIO_CS_PIN, radio_pins);
+  Radio* radio = new SX1272(*spi_handler_radio, RADIO_CS_PIN, radio_pins, SYNC_WORD);
   GNSS* gnss = new MAXM10S(*uart_handler_gnss);
   bool init_status_radio = radio->init();
   bool init_status_gnss = gnss->init();

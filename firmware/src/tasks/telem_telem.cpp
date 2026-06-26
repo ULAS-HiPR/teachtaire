@@ -23,14 +23,21 @@ void Telem_Task::StartTelemTask() {
         osStatus_t status;
         status = osMessageQueueGet(can_queue_, &flight_data_in, NULL, 10U);   // wait for message
 
-        if (gnss_.update(&gps_data_out)) {
-            //printf("GNSS update successful\n");
-        } else {
-            //printf("GNSS update failed\n");
-        }
+        uint8_t sending_buffer[32] = {0};
+
+        bool gps_ok = gnss_.update(&gps_data_out);
+       
+
+        std::size_t len = pack_gps(
+            gps_data_out,
+            sending_buffer,
+            gps_ok
+        );
+        printf("GPS packet len = %u\n", (unsigned)len);
+
         bool connected = gnss_.poll_navigation_satellites();
-        printf("GNSS poll navigation satellites: %s\n", connected ? "connected" : "not connected");
-        radio_.send(reinterpret_cast<const std::uint8_t*>(&flight_data_in), sizeof(flight_data_in));
+
+        radio_.send(sending_buffer, len);
 
 
         //read gnss
