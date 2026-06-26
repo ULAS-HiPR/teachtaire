@@ -28,7 +28,8 @@ void Telem_Task::StartTelemTask() {
         } else {
             //printf("GNSS update failed\n");
         }
-
+        bool connected = gnss_.poll_navigation_satellites();
+        printf("GNSS poll navigation satellites: %s\n", connected ? "connected" : "not connected");
         radio_.send(reinterpret_cast<const std::uint8_t*>(&flight_data_in), sizeof(flight_data_in));
 
 
