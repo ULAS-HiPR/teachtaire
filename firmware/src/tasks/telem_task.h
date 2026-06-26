@@ -49,7 +49,7 @@ class Telem_Task {
             nullptr,
             0,
             nullptr,
-            512,        // 512 byte stack
+            1024,        // 512 byte stack
             osPriorityHigh,
             0,
             0

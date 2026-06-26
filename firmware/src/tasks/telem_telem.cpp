@@ -21,28 +21,21 @@ void Telem_Task::StartTelemTask() {
 
     for (;;) {
         osStatus_t status;
-        status = osMessageQueueGet(can_queue_, &flight_data_in, NULL, 10U);   // wait for message
+        //status = osMessageQueueGet(can_queue_, &flight_data_in, NULL, 10U);   // wait for message
 
         uint8_t sending_buffer[32] = {0};
 
         bool gps_ok = gnss_.update(&gps_data_out);
        
-
         std::size_t len = pack_gps(
             gps_data_out,
             sending_buffer,
             gps_ok
         );
-        printf("GPS packet len = %u\n", (unsigned)len);
 
         bool connected = gnss_.poll_navigation_satellites();
 
         radio_.send(sending_buffer, len);
-
-
-        //read gnss
-        //send telem
-
         osMessageQueuePut(logger_queue_, &gps_data_out, 0, 0);
     
         osDelay(TELEM_DELAY_MS);  
