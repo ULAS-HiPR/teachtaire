@@ -1,3 +1,4 @@
+#ifdef F4
 #include "stm_f4.h"
 
 I2C_HandleTypeDef hi2c1;
@@ -35,3 +36,5 @@ void MX_SPI1_Init()
 
     HAL_SPI_Init(&hspi1);
 }
+
+#endif

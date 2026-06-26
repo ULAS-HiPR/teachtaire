@@ -52,9 +52,24 @@
   #include <stdint.h>
   extern uint32_t SystemCoreClock;
 #endif
+
 #ifndef CMSIS_device_header
-#define CMSIS_device_header "stm32f4xx.h"
+#if defined(STM32F4)
+    #define CMSIS_device_header "stm32f4xx.h"
+#elif defined(STM32F0)
+    #define CMSIS_device_header "stm32f0xx.h"
+#else
+    #error "Unsupported MCU"
+#endif
 #endif /* CMSIS_device_header */
+
+#if defined(STM32F4)
+    #define FREERTOS_CPU_M4 1
+#elif defined(STM32F0)
+    #define FREERTOS_CPU_M0 1
+#else
+    #error "Unknown MCU family"
+#endif
 
 #define configENABLE_FPU                         0
 #define configENABLE_MPU                         0
@@ -66,9 +81,21 @@
 #define configUSE_TICK_HOOK                      0
 #define configCPU_CLOCK_HZ                       ( SystemCoreClock )
 #define configTICK_RATE_HZ                       ((TickType_t)1000)
+
+#if FREERTOS_CPU_M4
 #define configMAX_PRIORITIES                     ( 56 )
+#elif FREERTOS_CPU_M0
+#define configMAX_PRIORITIES                     ( 8 )
+#endif
+
 #define configMINIMAL_STACK_SIZE                 ((uint16_t)128)
-#define configTOTAL_HEAP_SIZE                    ((size_t)15360)
+
+#if FREERTOS_CPU_M4
+#define configTOTAL_HEAP_SIZE                    ((size_t)(6144))
+#elif FREERTOS_CPU_M0
+#define configTOTAL_HEAP_SIZE                    ((size_t)6144)
+#endif
+
 #define configMAX_TASK_NAME_LEN                  ( 16 )
 #define configUSE_TRACE_FACILITY                 1
 #define configUSE_16_BIT_TICKS                   0
@@ -76,7 +103,13 @@
 #define configQUEUE_REGISTRY_SIZE                8
 #define configUSE_RECURSIVE_MUTEXES              1
 #define configUSE_COUNTING_SEMAPHORES            1
+
+#if FREERTOS_CPU_M4
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION  0
+#else
+#define configUSE_PORT_OPTIMISED_TASK_SELECTION  0
+#endif
+
 /* USER CODE BEGIN MESSAGE_BUFFER_LENGTH_TYPE */
 /* Defaults to size_t for backward compatibility, but can be changed
    if lengths will always be less than the number of bytes in a size_t. */
@@ -124,29 +157,50 @@ to exclude the API function. */
 #define USE_FreeRTOS_HEAP_4
 
 /* Cortex-M specific definitions. */
-#ifdef __NVIC_PRIO_BITS
- /* __BVIC_PRIO_BITS will be specified when CMSIS is being used. */
- #define configPRIO_BITS         __NVIC_PRIO_BITS
-#else
+#if FREERTOS_CPU_M4
+
  #define configPRIO_BITS         4
+
+ /* The lowest interrupt priority that can be used in a call to a "set priority"
+ function. */
+ #define configLIBRARY_LOWEST_INTERRUPT_PRIORITY   15
+
+ /* The highest interrupt priority that can be used by any interrupt service
+ routine that makes calls to interrupt safe FreeRTOS API functions.  DO NOT CALL
+ INTERRUPT SAFE FREERTOS API FUNCTIONS FROM ANY INTERRUPT THAT HAS A HIGHER
+ PRIORITY THAN THIS! (higher priorities are lower numeric values. */
+ #define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY 5
+
+ /* Interrupt priorities used by the kernel port layer itself.  These are generic
+ to all Cortex-M ports, and do not rely on any particular library functions. */
+ #define configKERNEL_INTERRUPT_PRIORITY \
+     ( configLIBRARY_LOWEST_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
+
+ #define configMAX_SYSCALL_INTERRUPT_PRIORITY \
+     ( configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
+
+#elif FREERTOS_CPU_M0
+
+ #define configPRIO_BITS         2 
+
+ /* The lowest interrupt priority that can be used in a call to a "set priority"
+ function. */
+ #define configLIBRARY_LOWEST_INTERRUPT_PRIORITY   3 
+
+ /* The highest interrupt priority that can be used by any interrupt service
+ routine that makes calls to interrupt safe FreeRTOS API functions.  DO NOT CALL
+ INTERRUPT SAFE FREERTOS API FUNCTIONS FROM ANY INTERRUPT THAT HAS A HIGHER
+ PRIORITY THAN THIS! (higher priorities are lower numeric values. */
+ #define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY 3 
+ 
+ /* Interrupt priorities used by the kernel port layer itself.  These are generic
+ to all Cortex-M ports, and do not rely on any particular library functions. */
+ #define configKERNEL_INTERRUPT_PRIORITY 		( configLIBRARY_LOWEST_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
+ /* !!!! configMAX_SYSCALL_INTERRUPT_PRIORITY must not be set to zero !!!!
+ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
+ #define configMAX_SYSCALL_INTERRUPT_PRIORITY 	( configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
+
 #endif
-
-/* The lowest interrupt priority that can be used in a call to a "set priority"
-function. */
-#define configLIBRARY_LOWEST_INTERRUPT_PRIORITY   15
-
-/* The highest interrupt priority that can be used by any interrupt service
-routine that makes calls to interrupt safe FreeRTOS API functions.  DO NOT CALL
-INTERRUPT SAFE FREERTOS API FUNCTIONS FROM ANY INTERRUPT THAT HAS A HIGHER
-PRIORITY THAN THIS! (higher priorities are lower numeric values. */
-#define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY 5
-
-/* Interrupt priorities used by the kernel port layer itself.  These are generic
-to all Cortex-M ports, and do not rely on any particular library functions. */
-#define configKERNEL_INTERRUPT_PRIORITY 		( configLIBRARY_LOWEST_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
-/* !!!! configMAX_SYSCALL_INTERRUPT_PRIORITY must not be set to zero !!!!
-See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
-#define configMAX_SYSCALL_INTERRUPT_PRIORITY 	( configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
 
 /* Normal assert() semantics without relying on the provision of an assert.h
 header file. */
@@ -161,7 +215,7 @@ standard names. */
 
 /* IMPORTANT: After 10.3.1 update, Systick_Handler comes from NVIC (if SYS timebase = systick), otherwise from cmsis_os2.c */
 
-#define USE_CUSTOM_SYSTICK_HANDLER_IMPLEMENTATION 0
+#define xPortSysTickHandler SysTick_Handler
 
 /* USER CODE BEGIN Defines */
 /* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */

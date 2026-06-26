@@ -1,3 +1,4 @@
+#ifdef F4
 /* --------------------------------------------------------------------------
  * Copyright (c) 2013-2020 Arm Limited. All rights reserved.
  *
@@ -308,3 +309,4 @@
 #endif
 
 #endif /* FREERTOS_OS2_H_ */
+#endif
