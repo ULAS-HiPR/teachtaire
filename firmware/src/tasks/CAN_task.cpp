@@ -91,7 +91,7 @@ bool CAN_task::process_rx_frame(const CAN_Frame& frame, flight_data& shared_data
                 return false;
             }
             shared_data.prediction.acceleration = payload.accleration / 100.0f;
-            shared_data.prediction.altitude = payload.altitude_m / 100.0f;
+            shared_data.prediction.altitude = payload.altitude_m ;
             shared_data.prediction.velocity = payload.vspeed_cms / 100.0f;
             shared_data.core_data.time = payload.timestamp_ms;
             return true;
