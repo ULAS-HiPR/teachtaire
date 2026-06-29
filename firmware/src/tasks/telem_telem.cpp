@@ -1,4 +1,5 @@
 #include "telem_task.h"
+#include <cstdio>
 
 namespace task {
 
@@ -26,6 +27,9 @@ void Telem_Task::StartTelemTask() {
         uint8_t sending_buffer[32] = {0};
 
         bool gps_ok = gnss_.update(&gps_data_out);
+        if (gps_ok) {
+            printf("gps");
+        }
        
         std::size_t len = pack_gps(
             gps_data_out,
