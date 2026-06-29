@@ -39,7 +39,7 @@
 #include "tasks/CAN_task.h"
 #include "tasks/telem_task.h"
 
-#define SYNC_WORD 0x4F // O for Ogma, P for Payload
+#define SYNC_WORD 0x50 // O for Ogma, P for Payload
 
 
 void SystemClock_Config(void);
