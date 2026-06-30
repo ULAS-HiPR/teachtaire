@@ -6,6 +6,20 @@
 #include <stm32f0xx_hal.h>
 
 #include <cstdint>
+#include <cstddef>
+
+// Must match teammate ground-station decoder:
+//
+//     struct.unpack("<iihhBB", buf)
+//
+// Packet length = 14 bytes:
+//     int32 latitude_e7
+//     int32 longitude_e7
+//     int16 altitude_dm       altitude metres * 10
+//     int16 velocity_dm_s     velocity m/s * 10
+//     uint8 satellites
+//     uint8 gps_valid
+constexpr std::size_t OGMA_GPS_PACKET_LEN = 14U;
 
 struct teachtaire_report_t {
     uint32_t magic;
@@ -69,7 +83,7 @@ volatile teachtaire_report_t report{};
 
 namespace {
 
-constexpr uint32_t REPORT_MAGIC = 0x54434854U;
+constexpr uint32_t REPORT_MAGIC = 0x54434854U; // 'TCHT'
 
 constexpr uint16_t LORA_RESET_PIN = GPIO_PIN_1;
 constexpr uint16_t LORA_NSS_PIN = GPIO_PIN_2;
@@ -115,6 +129,7 @@ void SystemClock_Config()
     osc.OscillatorType = RCC_OSCILLATORTYPE_HSI;
     osc.HSIState = RCC_HSI_ON;
     osc.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+
     if (HAL_RCC_OscConfig(&osc) != HAL_OK) {
         report.fault = 1U;
         return;
@@ -125,6 +140,7 @@ void SystemClock_Config()
     clk.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
     clk.AHBCLKDivider = RCC_SYSCLK_DIV1;
     clk.APB1CLKDivider = RCC_HCLK_DIV1;
+
     if (HAL_RCC_ClockConfig(&clk, FLASH_LATENCY_0) != HAL_OK) {
         report.fault = 2U;
         return;
@@ -169,6 +185,7 @@ void MX_SPI1_Init()
     hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
     hspi1.Init.CRCPolynomial = 7U;
     hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+
     report.spi_ok = (HAL_SPI_Init(&hspi1) == HAL_OK) ? 1U : 0U;
 }
 
@@ -185,7 +202,14 @@ void MX_USART1_UART_Init()
     huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
     huart1.Init.OverSampling = UART_OVERSAMPLING_16;
     huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-    report.uart_ok = (HAL_UART_Init(&huart1) == HAL_OK) ? 1U : 0U;
+
+    if (HAL_UART_Init(&huart1) == HAL_OK) {
+        report.uart_ok = 1U;
+
+        // Force HAL state to READY.
+        huart1.gState = HAL_UART_STATE_READY;
+        huart1.RxState = HAL_UART_STATE_READY;
+    }
 }
 
 void lora_reset_write(bool high, void*)
@@ -200,8 +224,17 @@ void lora_delay_ms(uint32_t ms, void*)
 
 void lora_switch_write(sx1272_switch_mode_t mode, void*)
 {
-    HAL_GPIO_WritePin(GPIOA, LORA_RX_SWITCH_PIN, mode == sx1272_switch_mode_t::RX ? GPIO_PIN_SET : GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(GPIOA, LORA_TX_SWITCH_PIN, mode == sx1272_switch_mode_t::TX ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(
+        GPIOA,
+        LORA_RX_SWITCH_PIN,
+        mode == sx1272_switch_mode_t::RX ? GPIO_PIN_SET : GPIO_PIN_RESET
+    );
+
+    HAL_GPIO_WritePin(
+        GPIOA,
+        LORA_TX_SWITCH_PIN,
+        mode == sx1272_switch_mode_t::TX ? GPIO_PIN_SET : GPIO_PIN_RESET
+    );
 }
 
 void gnss_reset()
@@ -215,6 +248,70 @@ void gnss_reset()
 int32_t scale_double(double value, double scale)
 {
     return static_cast<int32_t>(value * scale);
+}
+
+int16_t clamp_i16(int32_t value)
+{
+    if (value > 32767) {
+        return 32767;
+    }
+
+    if (value < -32768) {
+        return -32768;
+    }
+
+    return static_cast<int16_t>(value);
+}
+
+void write_u32_le(uint8_t* out, uint32_t value)
+{
+    out[0] = static_cast<uint8_t>(value & 0xFFU);
+    out[1] = static_cast<uint8_t>((value >> 8U) & 0xFFU);
+    out[2] = static_cast<uint8_t>((value >> 16U) & 0xFFU);
+    out[3] = static_cast<uint8_t>((value >> 24U) & 0xFFU);
+}
+
+void write_u16_le(uint8_t* out, uint16_t value)
+{
+    out[0] = static_cast<uint8_t>(value & 0xFFU);
+    out[1] = static_cast<uint8_t>((value >> 8U) & 0xFFU);
+}
+
+void write_i32_le(uint8_t* out, int32_t value)
+{
+    write_u32_le(out, static_cast<uint32_t>(value));
+}
+
+void write_i16_le(uint8_t* out, int16_t value)
+{
+    write_u16_le(out, static_cast<uint16_t>(value));
+}
+
+std::size_t build_ogma_gps_packet(uint8_t* out, std::size_t max_len, const MAXM10S& gnss, const gps_data& gps)
+{
+    if ((out == nullptr) || (max_len < OGMA_GPS_PACKET_LEN)) {
+        return 0U;
+    }
+
+    // This must match teammate's Python:
+    //
+    //     lat, lon, alt, vel, sats, gps_valid = struct.unpack("<iihhBB", buf)
+    //
+    const int32_t latitude_e7 = scale_double(gps.latitude, 10000000.0);
+    const int32_t longitude_e7 = scale_double(gps.longitude, 10000000.0);
+    const int16_t altitude_dm = clamp_i16(static_cast<int32_t>(gps.altitude * 10.0f));
+    const int16_t velocity_dm_s = clamp_i16(static_cast<int32_t>(gps.velocity * 10.0f));
+    const uint8_t satellites = gps.satellites;
+    const uint8_t gps_valid = gnss.fix_valid() ? 1U : 0U;
+
+    write_i32_le(&out[0], latitude_e7);
+    write_i32_le(&out[4], longitude_e7);
+    write_i16_le(&out[8], altitude_dm);
+    write_i16_le(&out[10], velocity_dm_s);
+    out[12] = satellites;
+    out[13] = gps_valid;
+
+    return OGMA_GPS_PACKET_LEN;
 }
 
 void update_gpio_report()
@@ -235,6 +332,7 @@ void update_gnss_report(const MAXM10S& gnss, const gps_data& gps)
     report.gnss_overflows = gnss.line_overflows();
     report.gnss_txt = gnss.text_messages_seen();
     report.gnss_nav_sat = gnss.navigation_satellite_messages_seen();
+
     report.gnss_fix = gnss.fix_valid() ? 1U : 0U;
     report.gnss_sats = gps.satellites;
     report.gnss_sats_in_view = gnss.satellites_in_view();
@@ -242,6 +340,7 @@ void update_gnss_report(const MAXM10S& gnss, const gps_data& gps)
     report.gnss_nav_sat_count = gnss.navigation_satellites_reported();
     report.gnss_nav_sat_signal = gnss.navigation_satellites_with_signal();
     report.gnss_nav_sat_max_cno = gnss.navigation_satellite_max_cno();
+
     report.gnss_latitude_e7 = scale_double(gps.latitude, 10000000.0);
     report.gnss_longitude_e7 = scale_double(gps.longitude, 10000000.0);
     report.gnss_altitude_mm = static_cast<int32_t>(gps.altitude * 1000.0f);
@@ -265,22 +364,6 @@ void update_bus_report(SPI_STM& spi, UART_STM& uart)
     report.uart_error = uart.last_error();
     report.usart1_isr = USART1->ISR;
     update_gpio_report();
-}
-
-void write_u32_le(uint8_t* out, uint32_t value)
-{
-    out[0] = static_cast<uint8_t>(value & 0xFFU);
-    out[1] = static_cast<uint8_t>((value >> 8U) & 0xFFU);
-    out[2] = static_cast<uint8_t>((value >> 16U) & 0xFFU);
-    out[3] = static_cast<uint8_t>((value >> 24U) & 0xFFU);
-}
-
-uint32_t read_u32_le(const uint8_t* in)
-{
-    return static_cast<uint32_t>(in[0]) |
-           (static_cast<uint32_t>(in[1]) << 8U) |
-           (static_cast<uint32_t>(in[2]) << 16U) |
-           (static_cast<uint32_t>(in[3]) << 24U);
 }
 
 } // namespace
@@ -317,77 +400,64 @@ int main()
 
     sx1272_config_t lora_config{};
     report.lora_init_ok = lora.init(lora_config) ? 1U : 0U;
-
-#if defined(TEACHTAIRE_LORA_TX_TEST)
     report.lora_rx_ok = 0U;
+
+    gps_data gps{};
+
     uint32_t last_tx_ms = 0U;
+    uint32_t last_report_ms = 0U;
+    uint32_t last_nav_sat_poll_ms = 0U;
     uint32_t tx_counter = 0U;
+
+    bool lora_tx_busy = false;
+
     while (true) {
         report.loops++;
+
+        // Keep draining GPS UART. Do not add HAL_Delay() here.
+        bool gnss_updated = gnss.update(&gps);
         uint32_t now = HAL_GetTick();
-        if ((report.lora_init_ok != 0U) && ((now - last_tx_ms) >= 500U)) {
-            last_tx_ms = now;
-            uint8_t packet[12] = {'T', 'C', 'H', 'T', 'L', 'O', 'R', 'A', 0U, 0U, 0U, 0U};
-            write_u32_le(&packet[8], tx_counter);
-            if (lora.send(packet, sizeof(packet))) {
+
+        if ((now - last_nav_sat_poll_ms) >= 1000U) {
+            last_nav_sat_poll_ms = now;
+            (void)gnss.poll_navigation_satellites();
+        }
+
+        if (lora_tx_busy && lora.tx_done()) {
+            lora_tx_busy = false;
+            report.lora_tx_done_count++;
+        }
+
+        // Send whenever GPS updates, plus a 2-second heartbeat.
+        bool time_for_heartbeat = (now - last_tx_ms) >= 2000U;
+        bool should_send = gnss_updated || time_for_heartbeat;
+
+        if ((report.lora_init_ok != 0U) && !lora_tx_busy && should_send) {
+            uint8_t packet[OGMA_GPS_PACKET_LEN]{};
+
+            std::size_t packet_len = build_ogma_gps_packet(
+                packet,
+                sizeof(packet),
+                gnss,
+                gps
+            );
+
+            if ((packet_len > 0U) && lora.send(packet, packet_len)) {
+                lora_tx_busy = true;
+                last_tx_ms = now;
+
                 report.lora_tx_count++;
                 report.lora_last_counter = tx_counter;
                 tx_counter++;
             }
         }
-        if (lora.tx_done()) {
-            report.lora_tx_done_count++;
-        }
-        update_lora_report(lora);
-        update_bus_report(spi, uart);
-        HAL_Delay(10U);
-    }
-#elif defined(TEACHTAIRE_LORA_RX_TEST)
-    report.lora_rx_ok = (report.lora_init_ok != 0U && lora.start_receive()) ? 1U : 0U;
-    while (true) {
-        report.loops++;
-        uint8_t packet[32]{};
-        size_t packet_len = 0U;
-        if (lora.receive(packet, sizeof(packet), &packet_len)) {
-            if ((packet_len == 12U) &&
-                (packet[0] == 'T') && (packet[1] == 'C') && (packet[2] == 'H') && (packet[3] == 'T') &&
-                (packet[4] == 'L') && (packet[5] == 'O') && (packet[6] == 'R') && (packet[7] == 'A')) {
-                report.lora_rx_count++;
-                report.lora_last_counter = read_u32_le(&packet[8]);
-            } else {
-                report.lora_rx_bad_count++;
-            }
-        }
-        update_lora_report(lora);
-        update_bus_report(spi, uart);
-        HAL_Delay(10U);
-    }
-#else
-    report.lora_rx_ok = (report.lora_init_ok != 0U && lora.start_receive()) ? 1U : 0U;
 
-    gps_data gps{};
-    uint32_t last_report_ms = 0U;
-    uint32_t last_nav_sat_poll_ms = 0U;
-    while (true) {
-        report.loops++;
-
-        bool gnss_updated = gnss.update(&gps);
-        uint32_t now = HAL_GetTick();
-        if ((now - last_nav_sat_poll_ms) >= 1000U) {
-            last_nav_sat_poll_ms = now;
-            (void)gnss.poll_navigation_satellites();
-        }
         if (gnss_updated || ((now - last_report_ms) >= 250U)) {
             last_report_ms = now;
+
             update_gnss_report(gnss, gps);
             update_lora_report(lora);
-            report.spi_status = spi.last_status();
-            report.spi_error = spi.last_error();
-            report.uart_status = uart.last_status();
-            report.uart_error = uart.last_error();
-            report.usart1_isr = USART1->ISR;
-            update_gpio_report();
+            update_bus_report(spi, uart);
         }
     }
-#endif
 }
