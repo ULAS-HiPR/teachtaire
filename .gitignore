@@ -2,6 +2,10 @@
 # Format documentation: https://kicad.org/help/file-formats/
 
 .DS_Store
+firmware/.pio/
+firmware/.vscode/
+/output/
+/tmp/
 # Temporary files
 *.000
 *.bak
