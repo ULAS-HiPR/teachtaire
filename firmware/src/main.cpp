@@ -980,6 +980,10 @@ int main()
 
     HAL_Init();
     SystemClock_Config();
+    report.watchdog_init_ok = init_watchdog() ? 1U : 0U;
+    if (report.watchdog_init_ok == 0U) {
+        Error_Handler();
+    }
     MX_GPIO_Init();
     MX_SPI1_Init();
     MX_USART1_UART_Init();
@@ -1004,10 +1008,6 @@ int main()
     report.lora_init_ok = lora.init(lora_config) ? 1U : 0U;
     report.lora_rx_ok =
         (report.lora_init_ok != 0U && LORA_RECEIVE_ONLY && lora.start_receive()) ? 1U : 0U;
-    report.watchdog_init_ok = init_watchdog() ? 1U : 0U;
-    if (report.watchdog_init_ok == 0U) {
-        Error_Handler();
-    }
 
     gps_data gps{};
 

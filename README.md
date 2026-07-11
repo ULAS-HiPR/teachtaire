@@ -44,7 +44,7 @@ Ogma Console can:
 - CAN behavior should remain separate from SWD debug/control work.
 - GNSS and LoRa status are published through both CAN diagnostics and the SWD `report` block.
 - LoRa TX has timeout/reinit telemetry so a stuck radio path is visible in Ogma Console.
-- Hardware watchdog reset status is reported in `report` version 3.
+- Hardware watchdog starts immediately after clock setup; reset status and telemetry queue health are reported in `report` version 4.
 - Radio protocol v1 carries raw CAN bundles with CRC16: core flight data at 5 Hz, GPS/power/health at 1 Hz, flight/pyro events immediately, and heartbeat diagnostics at 0.2 Hz.
 - Groundstation receives the same protocol and bridges app-compatible JSON/CAN lines over USB.
 
