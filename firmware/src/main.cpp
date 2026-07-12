@@ -119,8 +119,9 @@ struct teachtaire_report_t {
     uint32_t telemetry_event_tx_count;
     uint32_t telemetry_deep_tx_count;
     uint32_t telemetry_event_drop_count;
+    uint32_t gnss_uart_overrun_recoveries;
 };
-static_assert(sizeof(teachtaire_report_t) == 252U,
+static_assert(sizeof(teachtaire_report_t) == 256U,
               "teachtaire_report_t wire contract changed");
 
 extern "C" {
@@ -957,6 +958,7 @@ void update_bus_report(SPI_STM& spi, UART_STM& uart)
     report.spi_error = spi.last_error();
     report.uart_status = uart.last_status();
     report.uart_error = uart.last_error();
+    report.gnss_uart_overrun_recoveries = uart.rx_overrun_recoveries();
     report.usart1_isr = USART1->ISR;
     update_gpio_report();
 }
@@ -974,7 +976,7 @@ int main()
 {
     (void)ogma_board_identity.magic;
     report.magic = REPORT_MAGIC;
-    report.version = 4U;
+    report.version = 5U;
     report.reset_flags = RCC->CSR;
     __HAL_RCC_CLEAR_RESET_FLAGS();
 
