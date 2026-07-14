@@ -4,6 +4,7 @@
 #include <SPI/SPI_STM.h>
 #include <UART/UART_STM.h>
 #include <ogma_radio_protocol.h>
+#include <teachtaire_radio_config.h>
 
 #include <stm32f0xx_hal.h>
 
@@ -120,8 +121,11 @@ struct teachtaire_report_t {
     uint32_t telemetry_deep_tx_count;
     uint32_t telemetry_event_drop_count;
     uint32_t gnss_uart_overrun_recoveries;
+    uint32_t radio_config_magic;
+    uint32_t radio_config_schema_version;
+    uint32_t radio_config_crc32;
 };
-static_assert(sizeof(teachtaire_report_t) == 256U,
+static_assert(sizeof(teachtaire_report_t) == 268U,
               "teachtaire_report_t wire contract changed");
 
 extern "C" {
@@ -176,10 +180,10 @@ constexpr uint32_t LORA_REINIT_PERIOD_MS = 2000U;
 constexpr uint32_t LORA_TX_TIMEOUT_MS = 5000U;
 constexpr uint32_t GNSS_FIX_TIMEOUT_MS = 5000U;
 constexpr uint32_t GPS_CAN_PERIOD_MS = 1000U;
-constexpr uint32_t RADIO_CORE_PERIOD_MS = 200U;
-constexpr uint32_t RADIO_GPS_PERIOD_MS = 1000U;
-constexpr uint32_t RADIO_SLOW_PERIOD_MS = 1000U;
-constexpr uint32_t RADIO_DEEP_PERIOD_MS = 5000U;
+constexpr uint32_t RADIO_CORE_PERIOD_MS = TEACHTAIRE_RADIO_CORE_PERIOD_MS;
+constexpr uint32_t RADIO_GPS_PERIOD_MS = TEACHTAIRE_RADIO_GPS_PERIOD_MS;
+constexpr uint32_t RADIO_SLOW_PERIOD_MS = TEACHTAIRE_RADIO_SLOW_PERIOD_MS;
+constexpr uint32_t RADIO_DEEP_PERIOD_MS = TEACHTAIRE_RADIO_DEEP_PERIOD_MS;
 constexpr uint32_t RADIO_CACHE_MAX_AGE_MS = 5000U;
 constexpr uint8_t RADIO_EVENT_QUEUE_LEN = 8U;
 constexpr uint8_t CAN_TX_QUEUE_LEN = 8U;
@@ -207,6 +211,7 @@ constexpr uint16_t CORE_CAN_IDS[] = {
     CAN_ID_KALMANN,
     CAN_ID_BARO,
     CAN_ID_IMU_ACCEL,
+    CAN_ID_IMU_GYRO,
 };
 
 constexpr uint16_t SLOW_CAN_IDS[] = {
@@ -216,7 +221,9 @@ constexpr uint16_t SLOW_CAN_IDS[] = {
     CAN_ID_ACTUATOR_COMMAND,
 };
 
-CachedCanFrame core_cache[4]{};
+constexpr std::size_t CORE_CAN_COUNT = sizeof(CORE_CAN_IDS) / sizeof(CORE_CAN_IDS[0]);
+
+CachedCanFrame core_cache[CORE_CAN_COUNT]{};
 CachedCanFrame slow_cache[4]{};
 CachedCanFrame heartbeat_cache[6]{};
 ogma_radio::RawCanRecord event_queue[RADIO_EVENT_QUEUE_LEN]{};
@@ -224,6 +231,7 @@ uint8_t event_head = 0U;
 uint8_t event_tail = 0U;
 uint8_t event_count = 0U;
 std::size_t heartbeat_page_start = 0U;
+std::size_t core_page_start = 0U;
 
 bool init_watchdog()
 {
@@ -288,10 +296,15 @@ std::size_t collect_records(const CachedCanFrame* cache,
                             std::size_t cache_count,
                             uint32_t now_ms,
                             ogma_radio::RawCanRecord* out,
-                            std::size_t max_records)
+                            std::size_t max_records,
+                            std::size_t start_index = 0U)
 {
+    if (cache_count == 0U) {
+        return 0U;
+    }
     std::size_t count = 0U;
-    for (std::size_t index = 0U; index < cache_count && count < max_records; ++index) {
+    for (std::size_t scanned = 0U; scanned < cache_count && count < max_records; ++scanned) {
+        const std::size_t index = (start_index + scanned) % cache_count;
         if (!cache[index].valid ||
             (now_ms - cache[index].last_seen_ms) > RADIO_CACHE_MAX_AGE_MS) {
             continue;
@@ -980,7 +993,10 @@ int main()
 {
     (void)ogma_board_identity.magic;
     report.magic = REPORT_MAGIC;
-    report.version = 5U;
+    report.version = 6U;
+    report.radio_config_magic = TEACHTAIRE_RADIO_CONFIG_MAGIC;
+    report.radio_config_schema_version = TEACHTAIRE_RADIO_CONFIG_SCHEMA_VERSION;
+    report.radio_config_crc32 = TEACHTAIRE_RADIO_CONFIG_CRC32;
     report.reset_flags = RCC->CSR;
     __HAL_RCC_CLEAR_RESET_FLAGS();
 
@@ -1117,7 +1133,8 @@ int main()
                     (now - last_radio_core_ms) >= RADIO_CORE_PERIOD_MS) {
                     ogma_radio::RawCanRecord records[ogma_radio::kMaxCanRecords]{};
                     const std::size_t count = collect_records(
-                        core_cache, 4U, now, records, ogma_radio::kMaxCanRecords);
+                        core_cache, CORE_CAN_COUNT, now, records,
+                        ogma_radio::kMaxCanRecords, core_page_start);
                     if (count > 0U) {
                         packet_len = ogma_radio::build_can_bundle(
                             packet, sizeof(packet), radio_sequence, now,
@@ -1170,6 +1187,8 @@ int main()
                     switch (packet_class) {
                     case TelemetryClass::Core:
                         last_radio_core_ms = now;
+                        core_page_start =
+                            (core_page_start + ogma_radio::kMaxCanRecords) % CORE_CAN_COUNT;
                         ++report.telemetry_core_tx_count;
                         break;
                     case TelemetryClass::Gps:

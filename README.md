@@ -30,7 +30,8 @@ Ogma Console can:
 - build/flash the Teachtaire PlatformIO environments,
 - read the live `report` SRAM block,
 - display LoRa counters/status,
-- display GNSS parse/fix/satellite/location fields.
+- display GNSS parse/fix/satellite/location fields,
+- configure, flash, and verify the versioned radio schedule.
 
 ## Host-Visible Symbols
 
@@ -44,8 +45,8 @@ Ogma Console can:
 - CAN behavior should remain separate from SWD debug/control work.
 - GNSS and LoRa status are published through both CAN diagnostics and the SWD `report` block.
 - LoRa TX has timeout/reinit telemetry so a stuck radio path is visible in Ogma Console.
-- Hardware watchdog starts immediately after clock setup; reset status and telemetry queue health are reported in `report` version 4.
-- Radio protocol v1 carries raw CAN bundles with CRC16: core flight data at 5 Hz, GPS/power/health at 1 Hz, flight/pyro events immediately, and heartbeat diagnostics at 0.2 Hz.
+- Hardware watchdog starts immediately after clock setup; reset status, telemetry queue health, and radio config magic/schema/CRC are reported in `report` version 6.
+- Radio protocol v1 carries raw CAN bundles with CRC16. Default schedule: rotating core flight/IMU data at 5 Hz, GPS and slow data at 1 Hz, events immediately, and deep heartbeat diagnostics at 0.2 Hz. Ogma Console can change the bounded schedule and seal it into `teachtaire_radio_config.h`.
 - Groundstation receives the same protocol and bridges app-compatible JSON/CAN lines over USB.
 
 ## Dependency Lock
