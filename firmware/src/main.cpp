@@ -144,7 +144,7 @@ __attribute__((used)) volatile OgmaBoardIdentity ogma_board_identity{
     sizeof(OgmaBoardIdentity),
     0x04U,
     0x19U,
-    20260711U,
+    20260714U,
     0U,
     0U,
     0U,
@@ -303,12 +303,16 @@ std::size_t collect_records(const CachedCanFrame* cache,
 
 bool cached_payload_differs(const CachedCanFrame& cache,
                             const CAN_RxHeaderTypeDef& header,
-                            const uint8_t* data)
+                            const uint8_t* data,
+                            uint8_t bytes_to_compare = 8U)
 {
     if (!cache.valid || cache.record.id != header.StdId || cache.record.dlc != header.DLC) {
         return true;
     }
-    for (uint8_t index = 0U; index < header.DLC; ++index) {
+    if (header.DLC < bytes_to_compare) {
+        return true;
+    }
+    for (uint8_t index = 0U; index < bytes_to_compare; ++index) {
         if (cache.record.data[index] != data[index]) {
             return true;
         }
@@ -694,7 +698,7 @@ void process_can_frame(const CAN_RxHeaderTypeDef& header, const uint8_t* data, u
 
     bool event = header.StdId == CAN_ID_PYRO_ACK;
     if (header.StdId == CAN_ID_FLIGHT_STATE) {
-        event = cached_payload_differs(core_cache[0], header, data);
+        event = cached_payload_differs(core_cache[0], header, data, 2U);
     } else if (header.StdId == CAN_ID_PYRO_STATUS) {
         event = cached_payload_differs(slow_cache[2], header, data);
     }
