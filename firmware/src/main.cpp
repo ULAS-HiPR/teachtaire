@@ -188,6 +188,7 @@ constexpr uint32_t RADIO_CACHE_MAX_AGE_MS = 5000U;
 constexpr uint8_t RADIO_EVENT_QUEUE_LEN = 8U;
 constexpr uint8_t CAN_TX_QUEUE_LEN = 8U;
 constexpr uint8_t CAN_TX_DRAIN_BUDGET = 3U;
+constexpr uint8_t CAN_RX_QUEUE_LEN = 16U;
 
 SPI_HandleTypeDef hspi1{};
 UART_HandleTypeDef huart1{};
@@ -204,6 +205,12 @@ struct CachedCanFrame {
     ogma_radio::RawCanRecord record{};
     uint32_t last_seen_ms{0U};
     bool valid{false};
+};
+
+struct QueuedCanFrame {
+    CAN_RxHeaderTypeDef header{};
+    uint8_t data[8]{};
+    uint32_t received_ms{0U};
 };
 
 constexpr uint16_t CORE_CAN_IDS[] = {
@@ -261,6 +268,10 @@ CANFrame tx_queue[CAN_TX_QUEUE_LEN]{};
 uint8_t tx_head = 0U;
 uint8_t tx_tail = 0U;
 uint8_t tx_count = 0U;
+QueuedCanFrame rx_queue[CAN_RX_QUEUE_LEN]{};
+volatile uint8_t rx_head = 0U;
+volatile uint8_t rx_tail = 0U;
+volatile uint8_t rx_count = 0U;
 
 void cache_frame(CachedCanFrame& cache,
                  const CAN_RxHeaderTypeDef& header,
@@ -724,24 +735,31 @@ void process_can_frame(const CAN_RxHeaderTypeDef& header, const uint8_t* data, u
     }
 }
 
-void service_can_rx(uint32_t now_ms)
+void service_can_rx()
 {
     if (!can_ready) {
         return;
     }
-    if (__HAL_CAN_GET_FLAG(&hcan, CAN_FLAG_FOV0) != RESET) {
-        __HAL_CAN_CLEAR_FLAG(&hcan, CAN_FLAG_FOV0);
-        ++can_rx_overruns;
-    }
-    while (HAL_CAN_GetRxFifoFillLevel(&hcan, CAN_RX_FIFO0) > 0U) {
-        CAN_RxHeaderTypeDef header{};
-        uint8_t data[8]{};
-        if (HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0, &header, data) != HAL_OK) {
-            return;
+
+    while (true) {
+        QueuedCanFrame frame{};
+        const uint32_t primask = __get_PRIMASK();
+        __disable_irq();
+        if (rx_count == 0U) {
+            if (primask == 0U) {
+                __enable_irq();
+            }
+            break;
         }
-        ++can_rx_count;
-        if (header.IDE == CAN_ID_STD && header.RTR == CAN_RTR_DATA) {
-            process_can_frame(header, data, now_ms);
+        frame = rx_queue[rx_head];
+        rx_head = static_cast<uint8_t>((rx_head + 1U) % CAN_RX_QUEUE_LEN);
+        --rx_count;
+        if (primask == 0U) {
+            __enable_irq();
+        }
+
+        if (frame.header.IDE == CAN_ID_STD && frame.header.RTR == CAN_RTR_DATA) {
+            process_can_frame(frame.header, frame.data, frame.received_ms);
         }
     }
 }
@@ -756,7 +774,11 @@ void service_can_bus(uint32_t now_ms)
     }
     (void)HAL_CAN_Stop(&hcan);
     HAL_CAN_ResetError(&hcan);
-    (void)HAL_CAN_Start(&hcan);
+    if (HAL_CAN_Start(&hcan) == HAL_OK) {
+        __HAL_CAN_ENABLE_IT(
+            &hcan,
+            CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_RX_FIFO0_OVERRUN);
+    }
     last_bus_recovery_ms = now_ms;
 }
 
@@ -1010,6 +1032,13 @@ int main()
     MX_SPI1_Init();
     MX_USART1_UART_Init();
     can_ready = MX_CAN_Init() && HAL_CAN_Start(&hcan) == HAL_OK;
+    if (can_ready) {
+        HAL_NVIC_SetPriority(CEC_CAN_IRQn, 1U, 0U);
+        HAL_NVIC_EnableIRQ(CEC_CAN_IRQn);
+        __HAL_CAN_ENABLE_IT(
+            &hcan,
+            CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_RX_FIFO0_OVERRUN);
+    }
     gnss_reset();
 
     SPI_STM spi(&hspi1, GPIOA, LORA_NSS_PIN);
@@ -1064,7 +1093,7 @@ int main()
                                (now - last_valid_fix_ms) < GNSS_FIX_TIMEOUT_MS;
         service_can_bus(now);
         flush_can_queue();
-        service_can_rx(now);
+        service_can_rx();
 
         if ((now - last_nav_sat_poll_ms) >= 1000U) {
             last_nav_sat_poll_ms = now;
@@ -1278,6 +1307,38 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* handle)
         return;
     }
 
+    HAL_NVIC_DisableIRQ(CEC_CAN_IRQn);
     __HAL_RCC_CAN1_CLK_DISABLE();
     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_11 | GPIO_PIN_12);
+}
+
+extern "C" void CEC_CAN_IRQHandler()
+{
+    if (__HAL_CAN_GET_FLAG(&hcan, CAN_FLAG_FOV0) != RESET) {
+        __HAL_CAN_CLEAR_FLAG(&hcan, CAN_FLAG_FOV0);
+        ++can_rx_overruns;
+    }
+
+    while (HAL_CAN_GetRxFifoFillLevel(&hcan, CAN_RX_FIFO0) > 0U) {
+        CAN_RxHeaderTypeDef header{};
+        uint8_t data[8]{};
+        if (HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0, &header, data) != HAL_OK) {
+            break;
+        }
+        ++can_rx_count;
+
+        if (rx_count >= CAN_RX_QUEUE_LEN) {
+            ++can_rx_overruns;
+            continue;
+        }
+
+        QueuedCanFrame& destination = rx_queue[rx_tail];
+        destination.header = header;
+        for (uint8_t index = 0U; index < 8U; ++index) {
+            destination.data[index] = data[index];
+        }
+        destination.received_ms = HAL_GetTick();
+        rx_tail = static_cast<uint8_t>((rx_tail + 1U) % CAN_RX_QUEUE_LEN);
+        ++rx_count;
+    }
 }
